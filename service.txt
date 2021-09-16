@@ -1,0 +1,4 @@
+NAME           TYPE           CLUSTER-IP       EXTERNAL-IP                                                              PORT(S)          AGE
+demo-service   LoadBalancer   100.70.153.206   a6a99176e20c7483397704ffa5ea705e-730247111.us-east-2.elb.amazonaws.com   3000:31916/TCP   7h16m
+kubernetes     ClusterIP      100.64.0.1       <none>                                                                   443/TCP          7d5h
+user-service   LoadBalancer   100.67.120.66    <pending>                                                                3000:30611/TCP   0s
