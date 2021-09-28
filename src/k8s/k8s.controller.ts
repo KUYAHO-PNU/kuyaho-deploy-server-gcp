@@ -9,7 +9,7 @@ export class K8sController {
     @Post('createDeployment')
     // const image = 'cloudnatived/demo:hello'
     async createDeployment(@Body() data:any): Promise<any> {
-        return await this.containerService.createDeployment(data.name, data.image, data.port);
+        return await this.containerService.createDeployment(data.name, data.image, data.port, data.cpu, data.memory);
     }
 
     @Post('createService')
@@ -34,6 +34,16 @@ export class K8sController {
     @Get('getServices')
     async getServices(): Promise<Array<Object>> {
         return await this.containerService.getServices();
+    }
+
+    @Get('getDeploymentYaml')
+    async getDeploymentYaml(@Query('name') functionName: string): Promise<Array<Object>> {
+        return await this.containerService.getDeploymentYaml(functionName);
+    }
+
+    @Get('getServiceYaml')
+    async getServiceYaml(@Query('name') functionName: string): Promise<Array<Object>> {
+        return await this.containerService.getServiceYaml(functionName);
     }
     
     // @Get('portForwarding')

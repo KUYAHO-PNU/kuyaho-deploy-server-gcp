@@ -4,7 +4,7 @@ import { delay } from 'rxjs';
 import shell = require('shelljs')
 import YAML = require('yamljs')
 
-const ec2_path = `/home/computer7214/clone`;
+const dir_path = `/home/computer7214/clone`;
 
 @Injectable()
 export class K8sService { 
@@ -25,7 +25,7 @@ export class K8sService {
   }
   */
 
-  async createDeployment(name: String, image: String, port: string): Promise<any> {
+  async createDeployment(name: String, image: String, port: string, cpu: string, memory: string): Promise<any> {
     const data = `
 apiVersion: apps/v1
 kind: Deployment
@@ -47,11 +47,18 @@ spec:
       - name: ${name}
         image: ${image}
         ports:
-        - containerPort: ${port}`;
+        - containerPort: ${port}
+        resources:
+          requests:
+            cpu: 250m
+            memory: 8Mi
+          limits:
+            cpu: ${cpu}
+            memory: ${memory}`;
     try {
-      fs.writeFileSync(`${ec2_path}/${name}/deployment.yaml`, data, 'utf8');
+      fs.writeFileSync(`${dir_path}/${name}/deployment.yaml`, data, 'utf8');
       console.log(name + ' deployment.yaml 파일 생성 완료');
-      shell.exec(`kubectl apply -f ${ec2_path}/${name}/deployment.yaml`);
+      shell.exec(`kubectl apply -f ${dir_path}/${name}/deployment.yaml`);
     }
     catch(err) {
       console.log(name + ' deployment.yaml 파일 생성 중 에러\n' + err); 
@@ -74,9 +81,9 @@ spec:
     app: ${name}
   type: LoadBalancer`;
     try {
-      fs.writeFileSync(`${ec2_path}/${name}/service.yaml`, data, 'utf8');
+      fs.writeFileSync(`${dir_path}/${name}/service.yaml`, data, 'utf8');
       console.log(name + ' service.yaml 파일 생성 완료');
-      shell.exec(`kubectl apply -f ${ec2_path}/${name}/service.yaml`);
+      shell.exec(`kubectl apply -f ${dir_path}/${name}/service.yaml`);
     }
     catch(err) {
       console.log(name + ' service.yaml 파일 생성 중 에러\n' + err);
@@ -101,21 +108,22 @@ spec:
       fs.readFile('pods.json',(err,data)=>{
         if(err){
           reject(err)
-        }else{resolve(JSON.parse(data.toString()))}
+        }else{
+          resolve(JSON.parse(data.toString()))}
       })  
     })
-    
-
   }
+
   async getPodByName(name: string): Promise<Array<any>> {
-    shell.exec(`kubectl get pods ${name} -o yaml > pods.yaml`)
+    shell.exec(`kubectl get pods --selector=app=${name} -o yaml > pods.yaml`)
     shell.exec('yaml2json pods.yaml > pods.json')
 
     return new Promise<any>((resolve, reject) => {
       fs.readFile('pods.json',(err,data)=>{
         if(err){
           reject(err)
-        }else{resolve(JSON.parse(data.toString()))}
+        }else{
+          resolve(JSON.parse(data.toString()))}
       })  
     })
   }
@@ -129,7 +137,32 @@ spec:
       fs.readFile('service.json',(err,data)=>{
         if(err){
           reject(err)
-        }else{resolve(JSON.parse(data.toString()))}
+        }else{
+          resolve(JSON.parse(data.toString()))}
+      })  
+    })
+  }
+
+  async getDeploymentYaml(name: String): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
+      fs.readFile(`${dir_path}/${name}/deployment.yaml`, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data.toString());
+        }
+      })  
+    })
+  }
+
+  async getServiceYaml(name: String): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
+      fs.readFile(`${dir_path}/${name}/service.yaml`, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data.toString());
+        }
       })  
     })
   }
